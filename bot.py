@@ -3,11 +3,8 @@
 from aiohttp import web
 from plugins import web_server
 
-# --- PYROFORK BACKEND ENGINE FIX ---
-from pyrofork import Client
-from pyrofork.enums import ParseMode
-from pyrofork.types import BotCommand, BotCommandScopeChat
-# -----------------------------------
+from pyrogram import Client
+from pyrogram.enums import ParseMode
 import sys
 from datetime import datetime
 from config import LOGGER, PORT, OWNER_ID, SHORT_URL, SHORT_API, SHORT_TUT
@@ -167,41 +164,6 @@ class Bot(Client):
             self.LOGGER(__name__, self.name).warning(f"Failed to send restart notification to owner: {e}")
         
         self.username = usr_bot_me.username
-
-        # --- DYNAMIC MENU SCOPE (HIDDEN ADMIN COMMANDS) ---
-        try:
-            # 1. Normal Users Ke Liye Bilkul Clean Menu
-            await self.set_bot_commands([
-                BotCommand("start", "Check I am alive 🍃"),
-                BotCommand("help", "View help menu 📖"),
-                BotCommand("refer", "Refer a friend & get rewards 🎁"),
-            ])
-            
-            # 2. Admins/Owners Ke Liye Advanced Hidden Menu
-            for admin_id in self.admins:
-                try:
-                    await self.set_bot_commands([
-                        BotCommand("start", "Check I am alive 🍃"),
-                        BotCommand("help", "View help menu 📖"),
-                        BotCommand("genlink", "Store a single message/file 📁"),
-                        BotCommand("batch", "Store multiple messages 📦"),
-                        BotCommand("custom_batch", "Store random messages 🗳️"),
-                        BotCommand("shortener", "Shorten any shareable links 🔗"),
-                        BotCommand("broadcast", "Broadcast to users 📢"),
-                        BotCommand("pbroadcast", "Pin Broadcast 📌"),
-                        BotCommand("dbroadcast", "Auto-delete Broadcast ⏳"),
-                        BotCommand("ban", "Ban a user 🚫"),
-                        BotCommand("unban", "Unban a user ✅"),
-                        BotCommand("list_ban", "Show ban list 📝"),
-                        BotCommand("stats", "View bot stats 📊"),
-                    ], scope=BotCommandScopeChat(chat_id=admin_id))
-                except Exception:
-                    pass
-            self.LOGGER(__name__, self.name).info("Custom Bot Menu Scope successfully applied!")
-        except Exception as menu_err:
-            self.LOGGER(__name__, self.name).warning(f"Failed to set custom menus: {menu_err}")
-        # --------------------------------------------------
-
     async def stop(self, *args):
         await super().stop()
         self.LOGGER(__name__, self.name).info("Bot stopped.")
@@ -212,3 +174,4 @@ async def web_app():
     await app.setup()
     bind_address = "0.0.0.0"
     await web.TCPSite(app, bind_address, PORT).start()
+    
